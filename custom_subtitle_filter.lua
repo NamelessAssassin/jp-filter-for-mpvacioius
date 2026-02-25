@@ -2,7 +2,7 @@ local utils = require('custom_filter.utils')
 local state = require('custom_filter.state')
 local extractor = require('custom_filter.subtitle_extractor')
 local menu = require('custom_filter.menu.filter_menu')
-local language_rules = require('custom_filter.config.language_rules')
+local language_rules = require('custom_filter.language_rules')
 
 local M = {}
 
