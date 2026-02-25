@@ -1,6 +1,6 @@
 local utils = require('custom_filter.utils')
 local state = require('custom_filter.state')
-local processor = require('custom_filter.subtitle_extractor')
+local extractor = require('custom_filter.subtitle_extractor')
 local menu = require('custom_filter.menu.filter_menu')
 local language_rules = require('custom_filter.config.language_rules')
 
@@ -36,8 +36,8 @@ M.preprocess = function(text)
     local check_lang = language_rules.get_rule(profile_mode)
 
     -- 注入探测逻辑，并执行过滤
-    processor.set_rule(check_lang)
-    return processor.process(text, state, menu)
+    extractor.set_rule(check_lang)
+    return extractor.process(text, state, menu)
 end
 
 -- 初始化
