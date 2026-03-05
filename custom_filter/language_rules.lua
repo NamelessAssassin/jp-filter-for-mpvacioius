@@ -17,7 +17,7 @@ local language_map = {
 }
 
 -- 自定义语言规则
--- 函数名与`sub2srs.conf`中`custom_subtitle_filter_mode`项的值一致
+-- 函数名与 `sub2srs.conf` 中 `custom_subtitle_filter_mode` 项的值一致
 -- 函数名请使用小写字母
 local rules = {
     -- 日语匹配：检查是否包含假名
@@ -30,7 +30,7 @@ local rules = {
         return utils.contains_hangul(line)
     end,
 
-    -- 默认语言检测函数
+    -- 默认语言检测函数：非 CJK 字符视为外文
     others = function(line)
         return not utils.contains_cjk(line)
     end

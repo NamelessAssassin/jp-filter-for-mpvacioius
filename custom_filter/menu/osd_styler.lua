@@ -1,8 +1,10 @@
+local mp = require('mp')
+
 local OSD = {
     parts = {} -- 存储生成的 ASS 片段
 }
 
--- 预设颜色常量（RRGGBB 格式）
+-- 预设颜色常量 (RRGGBB 格式)
 OSD.colors = {
     green = "98E3A1", -- 薄荷绿
     yellow = "F4D688", -- 琥珀黄
@@ -12,18 +14,18 @@ OSD.colors = {
     hint = "B0B0B0" -- 提示石墨灰
 }
 
--- 预设字号常量（像素）
+-- 预设字号常量 (像素)
 OSD.size_presets = {
     title = 34, -- 标题字号
     stat = 24, -- 统计信息字号
     hint = 16, -- 提示文字字号
-    mini = 12, -- 极小字号（用于留白）
-    micro = 10 -- 微字号（用于留白微调）
+    mini = 12, -- 极小字号 (用于留白)
+    micro = 10 -- 微字号 (用于留白微调)
 }
 -- 默认字号
 OSD.size_presets.default = OSD.size_presets.stat
 
--- 对齐方式常量（ASS 标准：1=左下，2=中下，3=右下，4=左中，5=居中，6=右中，7=左上，8=中上，9=右上）
+-- 对齐方式常量 (ASS 标准: 1=左下, 2=中下, 3=右下, 4=左中, 5=居中, 6=右中, 7=左上, 8=中上, 9=右上)
 OSD.align = {
     bottom_left = 1,
     bottom_center = 2,
@@ -36,7 +38,7 @@ OSD.align = {
     top_right = 9
 }
 
--- 默认样式配置（全部使用预设常量）
+-- 默认样式配置 (全部使用预设常量)
 OSD.defaults = {
     font_name = "DengXian",
     font_size = OSD.size_presets.default, -- 默认字体大小
@@ -62,23 +64,23 @@ function OSD:new()
     return instance
 end
 
--- 添加纯文本（不附加任何样式）
+-- 添加纯文本 (不附加任何样式)
 function OSD:append(text)
     table.insert(self.parts, tostring(text))
     return self
 end
 
--- 设置位置（像素坐标）
+-- 设置位置 (像素坐标)
 function OSD:pos(x, y)
     return self:append(string.format("{\\pos(%d,%d)}", x, y))
 end
 
--- 设置对齐方式（使用 align 常量）
+-- 设置对齐方式 (使用 align 常量)
 function OSD:align(mode)
     return self:append(string.format("{\\an%d}", mode))
 end
 
--- 设置字体大小（使用 size_presets 常量）
+-- 设置字体大小 (使用 size_presets 常量)
 function OSD:font_size(size)
     return self:append(string.format("{\\fs%d}", size))
 end
@@ -88,7 +90,7 @@ function OSD:font_name(name)
     return self:append(string.format("{\\fn%s}", name))
 end
 
--- 设置主要颜色（使用 colors 常量，输入 RRGGBB，自动转换为 ASS 的 BGR 格式）
+-- 设置主要颜色 (使用 colors 常量, 输入 RRGGBB, 自动转换为 ASS 的 BGR 格式)
 function OSD:color(hex)
     local r = hex:sub(1, 2)
     local g = hex:sub(3, 4)
@@ -143,7 +145,7 @@ function OSD:micro_font()
 end
 
 -- ========== 语义化样式组合函数 ==========
--- 标题样式（大字 + 粗体 + 指定颜色）
+-- 标题样式 (大字 + 粗体 + 指定颜色)
 function OSD:title(text, color_func)
     self:title_font()
     if color_func then
@@ -153,7 +155,7 @@ function OSD:title(text, color_func)
     return self
 end
 
--- 统计信息样式（中号字 + 白色）
+-- 统计信息样式 (中号字 + 白色)
 function OSD:stat(text)
     self:stat_font()
     self:white()
@@ -161,7 +163,7 @@ function OSD:stat(text)
     return self
 end
 
--- 提示信息样式（小字 + 提示色）
+-- 提示信息样式 (小字 + 提示色)
 function OSD:hint_text(text)
     self:hint_font()
     self:hint_color()
@@ -169,7 +171,7 @@ function OSD:hint_text(text)
     return self
 end
 
--- 分割线样式（小字 + 分割线色 + 分割线）
+-- 分割线样式 (小字 + 分割线色 + 分割线)
 function OSD:separator_line(repeat_count, char)
     self:hint_font()
     self:sep_color()
@@ -209,26 +211,26 @@ function OSD:italic(text)
     return self
 end
 
--- 插入换行符（硬换行）
+-- 插入换行符 (硬换行)
 function OSD:newline()
     return self:append("\\N")
 end
 
--- 插入空格（可指定数量）
+-- 插入空格 (可指定数量)
 function OSD:spaces(count)
     count = count or 1
     return self:append(string.rep("\\h", count))
 end
 
--- 插入Tab（可指定数量）
+-- 插入 Tab (可指定数量)
 function OSD:tab(count)
     count = count or 1
     return self:spaces(count * 4)
 end
 
--- 视觉留白（空行）- 使用指定字号实现紧凑留白
+-- 视觉留白 (空行) - 使用指定字号实现紧凑留白
 -- 参数可以是：
---   - 字符串：使用 size_presets 中预定义的名称（如 "mini", "micro"）
+--   - 字符串：使用 size_presets 中预定义的名称 (如 "mini", "micro")
 --   - 数字：直接使用该数字作为字号
 --   - nil/省略：使用默认字号
 function OSD:spacing(size)
@@ -242,11 +244,11 @@ function OSD:spacing(size)
         -- 参数是字符串，检查是否是预定义的名称
         local preset_size = OSD.size_presets[size]
         if preset_size then
-            -- 如果是预定义的名称（如 "mini"），使用对应的字号
+            -- 如果是预定义的名称 (如 "mini")，使用对应的字号
             self:font_size(preset_size)
         else
             -- 如果不是预定义的名称，记录警告并使用默认字号
-            print("Warning: Unknown size preset '" .. size .. "', using default")
+            mp.msg.warn("Unknown size preset '" .. size .. "', using default")
             self:font_size(OSD.size_presets.default)
         end
     else
@@ -259,7 +261,7 @@ function OSD:spacing(size)
 end
 
 -- 绘制基于字符串的分割线
--- repeat_count: 重复字符的次数（默认24），char: 用于绘制分割线的字符（默认"—"）
+-- repeat_count: 重复字符的次数 (默认 24), char: 用于绘制分割线的字符 (默认 "—")
 function OSD:separator(repeat_count, char)
     repeat_count = repeat_count or 24
     char = char or "—"

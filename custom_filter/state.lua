@@ -2,7 +2,7 @@ local utils = require('custom_filter.utils')
 
 local state = {
     enabled = true,
-    MAX_HISTORY_SIZE = 10,
+    MAX_HISTORY_SIZE = 10, -- 配置：历史记录最大条目数
     MODES = {
         AUTO = "自动检测中...",
         TARGET_TOP = "顶部",
@@ -10,39 +10,17 @@ local state = {
         MONO = "单语模式"
     },
     current_mode = "AUTO",
-    threshold = 5,
+    threshold = 5, -- 锁定位置所需的匹配次数阈值
     scores = {
         TARGET_TOP = 0,
         TARGET_BOTTOM = 0,
         MONO = 0
     },
     last_subtitle_track = nil,
-    history = nil
+    history = nil -- 将初始化为环形缓冲区
 }
 
-local utils = require('custom_filter.utils')
-
-local state = {
-    enabled = true,
-    MAX_HISTORY_SIZE = 10, -- Config: max history entries
-    MODES = {
-        AUTO = "自动检测中...",
-        TARGET_TOP = "顶部", -- JP_TOP → TARGET_TOP
-        TARGET_BOTTOM = "底部", -- JP_BOTTOM → TARGET_BOTTOM
-        MONO = "单语模式"
-    },
-    current_mode = "AUTO",
-    threshold = 5,
-    scores = {
-        TARGET_TOP = 0, -- JP_TOP → TARGET_TOP
-        TARGET_BOTTOM = 0, -- JP_BOTTOM → TARGET_BOTTOM
-        MONO = 0
-    },
-    last_subtitle_track = nil,
-    history = nil -- Will be initialized as ring buffer
-}
-
--- Initialize history as ring buffer
+-- 初始化历史记录为环形缓冲区
 state.history = utils.create_ring_buffer(state.MAX_HISTORY_SIZE)
 
 function state:toggle()

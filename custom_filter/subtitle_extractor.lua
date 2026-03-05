@@ -20,7 +20,7 @@ local function update_scores(lines, state, menu)
         return
     end
 
-    -- Determine position: top, bottom, or mono
+    -- 判定位置：顶部、底部或单语
     local key
     if #lines == 1 then
         key = "MONO"
@@ -62,7 +62,7 @@ function M.process(text, state, menu)
         end
     end
 
-    -- Fallback: if no match but mode locked, extract by position
+    -- 回退机制：若未匹配到特征但已锁定模式，按位置提取
     if #target_lines == 0 and state.current_mode ~= "AUTO" then
         if state.current_mode == "TARGET_TOP" then
             table.insert(target_lines, lines[#lines - 1])

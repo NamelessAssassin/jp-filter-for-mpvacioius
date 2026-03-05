@@ -1,55 +1,54 @@
 local this = {}
 
 -------------------------------------------------------------------------------
--- UTF-8 Decoding Utilities
+-- UTF-8 解码工具
 -------------------------------------------------------------------------------
 
---- Decodes a UTF-8 character starting at index i and returns its Unicode codepoint 
---- and the number of bytes consumed.
---- This allows us to work with logical Unicode values instead of raw bytes.
---- @param str string: The input string.
---- @param i number: The current byte index.
---- @return number, number: (codepoint, next_index)
+--- 从字符串的指定位置解码 UTF-8 字符，返回其 Unicode 码点和消耗的字节数。
+--- 这使我们可以处理逻辑上的 Unicode 值，而不是原始字节。
+--- @param str string: 输入字符串
+--- @param i number: 当前字节索引
+--- @return number, number: (码点, 下一个索引)
 this.get_utf8_codepoint = function(str, i)
     local b1 = string.byte(str, i)
     if not b1 then
         return nil, i + 1
     end
 
-    -- 1-byte (ASCII): 0xxxxxxx
+    -- 1字节 (ASCII): 0xxxxxxx
     if b1 < 0x80 then
         return b1, i + 1
     end
 
-    -- Continuation byte (Invalid as start byte): 10xxxxxx
+    -- 续字节 (作为起始字节无效): 10xxxxxx
     if b1 < 0xC0 then
         return nil, i + 1
     end
 
-    -- 2-byte: 110xxxxx
+    -- 2字节: 110xxxxx
     if b1 < 0xE0 then
         local b2 = string.byte(str, i + 1)
         if not b2 then
             return nil, i + 1
         end
-        -- Formula: (b1 & 0x1F) << 6 | (b2 & 0x3F)
+        -- 公式: (b1 & 0x1F) << 6 | (b2 & 0x3F)
         local cp = (b1 - 0xC0) * 0x40 + (b2 - 0x80)
         return cp, i + 2
     end
 
-    -- 3-byte: 1110xxxx
+    -- 3字节: 1110xxxx
     if b1 < 0xF0 then
         local b2 = string.byte(str, i + 1)
         local b3 = string.byte(str, i + 2)
         if not b2 or not b3 then
             return nil, i + 1
         end
-        -- Formula: (b1 & 0x0F) << 12 | (b2 & 0x3F) << 6 | (b3 & 0x3F)
+        -- 公式: (b1 & 0x0F) << 12 | (b2 & 0x3F) << 6 | (b3 & 0x3F)
         local cp = (b1 - 0xE0) * 0x1000 + (b2 - 0x80) * 0x40 + (b3 - 0x80)
         return cp, i + 3
     end
 
-    -- 4-byte: 11110xxx
+    -- 4字节: 11110xxx
     if b1 < 0xF8 then
         local b2 = string.byte(str, i + 1)
         local b3 = string.byte(str, i + 2)
@@ -61,11 +60,11 @@ this.get_utf8_codepoint = function(str, i)
         return cp, i + 4
     end
 
-    -- Fallback for invalid sequences
+    -- 无效序列的回退处理
     return nil, i + 1
 end
 
---- Helper to get codepoint of a single character string (e.g., "あ")
+--- 获取单个字符字符串的码点（例如 "あ"）
 --- @param char_str string
 --- @return number
 this.utf8_to_cp = function(char_str)
@@ -74,12 +73,12 @@ this.utf8_to_cp = function(char_str)
 end
 
 -------------------------------------------------------------------------------
--- Language Detection
+-- 语言检测
 -------------------------------------------------------------------------------
 
---- Helper to scan a string for any codepoint that satisfies a predicate function.
---- @param str string: The input string.
---- @param predicate function: A function(cp) that returns boolean.
+--- 辅助函数：扫描字符串中是否存在满足谓词函数的码点
+--- @param str string: 输入字符串
+--- @param predicate function: 接收码点并返回布尔值的函数
 --- @return boolean
 local function contains_codepoint(str, predicate)
     if not str then
@@ -98,69 +97,69 @@ local function contains_codepoint(str, predicate)
     return false
 end
 
---- Checks if a Unicode codepoint falls within the Japanese Kana range.
---- Excludes the Middle Dot (U+30FB) commonly used in Chinese text.
---- @param cp number: The Unicode codepoint.
+--- 检查 Unicode 码点是否在日文假名范围内。
+--- 排除中文文本中常用的中点符号 (U+30FB)。
+--- @param cp number: Unicode 码点
 --- @return boolean
 local function is_kana_codepoint(cp)
-    -- Hiragana Range: U+3041 to U+309F
+    -- 平假名范围: U+3041 到 U+309F
     local is_hiragana = (cp >= 0x3041 and cp <= 0x309F)
 
-    -- Katakana Range: U+30A0 to U+30FF
-    -- We explicitly exclude U+30FB (Katana Middle Dot '・')
+    -- 片假名范围: U+30A0 到 U+30FF
+    -- 显式排除 U+30FB (片假名中点 '・')
     local is_katakana = (cp >= 0x30A0 and cp <= 0x30FF) and (cp ~= 0x30FB)
 
     return is_hiragana or is_katakana
 end
 
---- Checks if a Unicode codepoint falls within the Hangul Syllables range.
---- @param cp number: The Unicode codepoint.
+--- 检查 Unicode 码点是否在韩文谚文范围内。
+--- @param cp number: Unicode 码点
 --- @return boolean
 local function is_hangul_codepoint(cp)
-    local is_hangul = (cp >= 0xAC00 and cp <= 0xD7AF) -- Hangul Syllables: U+AC00 to U+D7AF
-    or (cp >= 0x1100 and cp <= 0x11FF) -- Hangul Jamo (Composing characters): U+1100 to U+11FF
+    local is_hangul = (cp >= 0xAC00 and cp <= 0xD7AF) -- 韩文音节: U+AC00 到 U+D7AF
+    or (cp >= 0x1100 and cp <= 0x11FF) -- 韩文字母 (组合字符): U+1100 到 U+11FF
 
     return is_hangul
 end
 
---- Checks if a Unicode codepoint falls within common CJK (Chinese, Japanese, Korean) ranges.
---- This logic specifically excludes Hiragana, Katakana, and Hangul.
---- @param cp number: The Unicode codepoint.
+--- 检查 Unicode 码点是否在常用 CJK (中日韩) 范围内。
+--- 此逻辑专门排除平假名、片假名和谚文。
+--- @param cp number: Unicode 码点
 --- @return boolean
 local function is_cjk_codepoint(cp)
-    local is_cjk = (cp >= 0x4E00 and cp <= 0x9FFF) -- CJK Unified Ideographs (Common Hanzi/Kanji)
-    or (cp >= 0x3400 and cp <= 0x4DBF) -- CJK Unified Ideographs Extension A
+    local is_cjk = (cp >= 0x4E00 and cp <= 0x9FFF) -- CJK 统一汉字 (常用汉字/日文汉字)
+    or (cp >= 0x3400 and cp <= 0x4DBF) -- CJK 统一汉字扩展 A
 
     return is_cjk
 end
 
---- Scans a string to see if it contains any Japanese Kana.
+--- 扫描字符串是否包含日文假名。
 --- @param str string
 --- @return boolean
 this.contains_kana = function(str)
     return contains_codepoint(str, is_kana_codepoint)
 end
 
---- Checks if the string contains Korean Hangul.
+--- 检查字符串是否包含韩文谚文。
 this.contains_hangul = function(str)
     return contains_codepoint(str, is_hangul_codepoint)
 end
 
---- Scans a string to see if it contains any CJK characters.
---- @param str string: The input string.
+--- 扫描字符串是否包含 CJK 字符。
+--- @param str string: 输入字符串
 --- @return boolean
 this.contains_cjk = function(str)
     return contains_codepoint(str, is_cjk_codepoint)
 end
 
 -------------------------------------------------------------------------------
--- Ring Buffer (FIFO with max size limit)
+-- 环形缓冲区 (带大小限制的 FIFO)
 -------------------------------------------------------------------------------
 
---- Creates a FIFO ring buffer with a maximum size limit.
---- When the buffer is full, the oldest entry is automatically removed.
---- @param max_size number: Maximum number of entries (default: 10)
---- @return table: Buffer object with set, get, clear methods
+--- 创建一个带最大大小限制的 FIFO 环形缓冲区。
+--- 当缓冲区满时，自动删除最早的条目。
+--- @param max_size number: 最大条目数 (默认: 10)
+--- @return table: 带 set, get, clear 方法的缓冲区对象
 this.create_ring_buffer = function(max_size)
     local buffer = {
         data = {},
@@ -168,40 +167,40 @@ this.create_ring_buffer = function(max_size)
         max_size = max_size or 10
     }
 
-    --- Sets a key-value pair in the buffer.
-    --- If key exists, updates the value. If buffer is full, removes oldest entry.
-    --- @param key string: The key to set
-    --- @param value any: The value to store
+    --- 设置键值对。
+    --- 如果键已存在，仅更新值。如果缓冲区满，删除最早的条目。
+    --- @param key string: 要设置的键
+    --- @param value any: 要存储的值
     function buffer:set(key, value)
         if not key then
             return
         end
 
-        -- Key exists: update value only
+        -- 键已存在：仅更新值
         if self.data[key] then
             self.data[key] = value
             return
         end
 
-        -- Buffer full: remove oldest entry (FIFO)
+        -- 缓冲区满：删除最早的条目 (FIFO)
         if #self.order >= self.max_size then
             local oldest_key = table.remove(self.order, 1)
             self.data[oldest_key] = nil
         end
 
-        -- Insert new entry
+        -- 插入新条目
         table.insert(self.order, key)
         self.data[key] = value
     end
 
-    --- Gets a value by key from the buffer.
-    --- @param key string: The key to look up
-    --- @return any: The stored value or nil if not found
+    --- 根据键获取值。
+    --- @param key string: 要查找的键
+    --- @return any: 存储的值，未找到则返回 nil
     function buffer:get(key)
         return self.data[key]
     end
 
-    --- Clears all entries from the buffer.
+    --- 清空缓冲区中的所有条目。
     function buffer:clear()
         self.data = {}
         self.order = {}
@@ -211,11 +210,11 @@ this.create_ring_buffer = function(max_size)
 end
 
 -------------------------------------------------------------------------------
--- OSD & UI Utilities
+-- OSD 和 UI 工具
 -------------------------------------------------------------------------------
 
---- Displays a temporary OSD message on the screen.
---- @param msg string: The message content to display.
+--- 在屏幕上显示临时的 OSD 消息。
+--- @param msg string: 要显示的消息内容
 this.notify = function(msg)
     if msg then
         mp.osd_message(msg, 2)
@@ -223,7 +222,7 @@ this.notify = function(msg)
 end
 
 -------------------------------------------------------------------------------
--- Others
+-- 其他工具
 -------------------------------------------------------------------------------
 
 this.split_lines = function(text)

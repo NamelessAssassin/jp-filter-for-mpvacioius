@@ -2,28 +2,27 @@
 ---
 --- 这是一个为 mpvacious 设计的沉浸式交互面板，用于辅助外语字幕识别。
 ---
---- 核心功能
+--- 核心功能：
 ---     提供可视化界面显示当前外文位置的检测状态与统计数据
 ---     支持通过快捷键实时切换过滤器的开关状态或重置识别逻辑
 ---     在当前配置不支持处理时，通过颜色与文案给出明确视觉提示
 ---
---- 交互逻辑
+--- 交互逻辑：
 ---     [o] 开启或关闭过滤器
 ---     [r] 重置所有识别统计数据
 ---     [esc/alt+m] 立即退出菜单界面
 ---
---- 设计特点
+--- 设计特点：
 ---     采用动态色彩反馈：绿色表示就绪，黄色表示自动识别中，红色表示停用或配置不支持
 ---     针对 mpv 快捷键特性，使用括号包装小写字母以增强符号化视觉感
 ---     自动注销按键绑定，确保关闭面板后不占用任何系统快捷键
----
 local mp = require('mp')
 local utils = require('custom_filter.utils')
 local osd = require('custom_filter.menu.osd_styler')
 
 local menu = {
     active = false,
-    timeout = 10,
+    timeout = 10, -- 菜单自动关闭超时时间 (秒)
     timer = nil,
     overlay = mp.create_osd_overlay("ass-events"),
 
@@ -108,13 +107,13 @@ function menu:update()
     -- 创建样式构建器
     local styler = osd:new()
 
-    -- 第一行：外文位置状态（使用 title 函数自动处理字号、粗体和颜色）
+    -- 第一行：外文位置状态 (使用 title 函数自动处理字号、粗体和颜色)
     styler:title(status_text, theme_color_func):newline()
 
-    -- 视觉留白（空行）
+    -- 视觉留白 (空行)
     styler:spacing("mini")
 
-    -- 第二行：识别统计（使用 stat 函数自动处理字号和颜色）
+    -- 第二行：识别统计 (使用 stat 函数自动处理字号和颜色)
     styler:stat(string.format("识别统计：顶部 %d  底部 %d  单语 %d  (目标 %d)",
         self.state.scores.TARGET_TOP, self.state.scores.TARGET_BOTTOM, self.state.scores.MONO, self.state.threshold))
         :newline()
@@ -122,13 +121,13 @@ function menu:update()
     -- 分割线前留白
     styler:spacing("micro")
 
-    -- 绘制分割线（使用 separator_line 自动处理字号、颜色和分割线）
+    -- 绘制分割线 (使用 separator_line 自动处理字号、颜色和分割线)
     styler:separator_line():newline()
 
     -- 提示行前留白
     styler:spacing("micro")
 
-    -- 底部提示（使用 hint_text 函数自动处理字号和颜色）
+    -- 底部提示 (使用 hint_text 函数自动处理字号和颜色)
     styler:hint_text("[o] 开启/关闭   [r] 重置模式   [R] 重置历史   [q/esc] 退出")
 
     -- 更新 OSD
