@@ -115,8 +115,9 @@ function menu:update()
     styler:spacing("mini")
 
     -- 第二行：识别统计（使用 stat 函数自动处理字号和颜色）
-    styler:stat(string.format("识别统计：顶部 %d  底部 %d  单语 %d  (目标 %d)", self.state.scores.JP_TOP,
-        self.state.scores.JP_BOTTOM, self.state.scores.MONO, self.state.threshold)):newline()
+    styler:stat(string.format("识别统计：顶部 %d  底部 %d  单语 %d  (目标 %d)",
+        self.state.scores.TARGET_TOP, self.state.scores.TARGET_BOTTOM, self.state.scores.MONO, self.state.threshold))
+        :newline()
 
     -- 分割线前留白
     styler:spacing("micro")

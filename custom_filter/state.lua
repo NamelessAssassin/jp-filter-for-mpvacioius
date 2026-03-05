@@ -2,22 +2,48 @@ local utils = require('custom_filter.utils')
 
 local state = {
     enabled = true,
+    MAX_HISTORY_SIZE = 10,
     MODES = {
         AUTO = "自动检测中...",
-        JP_TOP = "顶部",
-        JP_BOTTOM = "底部",
+        TARGET_TOP = "顶部",
+        TARGET_BOTTOM = "底部",
         MONO = "单语模式"
     },
     current_mode = "AUTO",
     threshold = 5,
     scores = {
-        JP_TOP = 0,
-        JP_BOTTOM = 0,
+        TARGET_TOP = 0,
+        TARGET_BOTTOM = 0,
         MONO = 0
     },
     last_subtitle_track = nil,
-    history = {}
+    history = nil
 }
+
+local utils = require('custom_filter.utils')
+
+local state = {
+    enabled = true,
+    MAX_HISTORY_SIZE = 10, -- Config: max history entries
+    MODES = {
+        AUTO = "自动检测中...",
+        TARGET_TOP = "顶部", -- JP_TOP → TARGET_TOP
+        TARGET_BOTTOM = "底部", -- JP_BOTTOM → TARGET_BOTTOM
+        MONO = "单语模式"
+    },
+    current_mode = "AUTO",
+    threshold = 5,
+    scores = {
+        TARGET_TOP = 0, -- JP_TOP → TARGET_TOP
+        TARGET_BOTTOM = 0, -- JP_BOTTOM → TARGET_BOTTOM
+        MONO = 0
+    },
+    last_subtitle_track = nil,
+    history = nil -- Will be initialized as ring buffer
+}
+
+-- Initialize history as ring buffer
+state.history = utils.create_ring_buffer(state.MAX_HISTORY_SIZE)
 
 function state:toggle()
     self.enabled = not self.enabled
@@ -29,8 +55,8 @@ end
 
 function state:reset_scores()
     self.current_mode = "AUTO"
-    self.scores.JP_TOP = 0
-    self.scores.JP_BOTTOM = 0
+    self.scores.TARGET_TOP = 0
+    self.scores.TARGET_BOTTOM = 0
     self.scores.MONO = 0
 end
 
@@ -48,24 +74,24 @@ end
 
 function state:save_history()
     if self.last_subtitle_track then
-        self.history[self.last_subtitle_track] = state:get_current_data()
+        self.history:set(self.last_subtitle_track, self:get_current_data())
     end
 end
 
 function state:switch_to(subtitle_track)
-    state:save_history()
+    self:save_history()
 
-    if subtitle_track and self.history[subtitle_track] then
-        state:restore_data(self.history[subtitle_track])
+    if subtitle_track and self.history:get(subtitle_track) then
+        self:restore_data(self.history:get(subtitle_track))
     else
-        state:reset_scores()
+        self:reset_scores()
     end
 
-    state.last_subtitle_track = subtitle_track
+    self.last_subtitle_track = subtitle_track
 end
 
 function state:reset_all()
-    self.history = {}
+    self.history:clear()
     self.last_subtitle_track = nil
     self:reset_scores()
 end

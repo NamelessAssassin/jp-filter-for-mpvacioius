@@ -20,16 +20,17 @@ local function update_scores(lines, state, menu)
         return
     end
 
-    -- 判定位置：顶部、底部或单语
+    -- Determine position: top, bottom, or mono
+    local key
     if #lines == 1 then
         key = "MONO"
     else
         local h1 = check_lang(lines[1])
         local h2 = check_lang(lines[2])
         if h1 and not h2 then
-            key = "JP_TOP"
+            key = "TARGET_TOP"
         elseif not h1 and h2 then
-            key = "JP_BOTTOM"
+            key = "TARGET_BOTTOM"
         else
             key = "MONO"
         end
@@ -61,11 +62,11 @@ function M.process(text, state, menu)
         end
     end
 
-    -- 回退机制：若未匹配到特征但已锁定模式，按位置提取
+    -- Fallback: if no match but mode locked, extract by position
     if #target_lines == 0 and state.current_mode ~= "AUTO" then
-        if state.current_mode == "JP_TOP" then
+        if state.current_mode == "TARGET_TOP" then
             table.insert(target_lines, lines[#lines - 1])
-        elseif state.current_mode == "JP_BOTTOM" then
+        elseif state.current_mode == "TARGET_BOTTOM" then
             table.insert(target_lines, lines[#lines])
         end
     end

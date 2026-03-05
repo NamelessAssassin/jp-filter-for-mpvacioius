@@ -154,6 +154,63 @@ this.contains_cjk = function(str)
 end
 
 -------------------------------------------------------------------------------
+-- Ring Buffer (FIFO with max size limit)
+-------------------------------------------------------------------------------
+
+--- Creates a FIFO ring buffer with a maximum size limit.
+--- When the buffer is full, the oldest entry is automatically removed.
+--- @param max_size number: Maximum number of entries (default: 10)
+--- @return table: Buffer object with set, get, clear methods
+this.create_ring_buffer = function(max_size)
+    local buffer = {
+        data = {},
+        order = {},
+        max_size = max_size or 10
+    }
+
+    --- Sets a key-value pair in the buffer.
+    --- If key exists, updates the value. If buffer is full, removes oldest entry.
+    --- @param key string: The key to set
+    --- @param value any: The value to store
+    function buffer:set(key, value)
+        if not key then
+            return
+        end
+
+        -- Key exists: update value only
+        if self.data[key] then
+            self.data[key] = value
+            return
+        end
+
+        -- Buffer full: remove oldest entry (FIFO)
+        if #self.order >= self.max_size then
+            local oldest_key = table.remove(self.order, 1)
+            self.data[oldest_key] = nil
+        end
+
+        -- Insert new entry
+        table.insert(self.order, key)
+        self.data[key] = value
+    end
+
+    --- Gets a value by key from the buffer.
+    --- @param key string: The key to look up
+    --- @return any: The stored value or nil if not found
+    function buffer:get(key)
+        return self.data[key]
+    end
+
+    --- Clears all entries from the buffer.
+    function buffer:clear()
+        self.data = {}
+        self.order = {}
+    end
+
+    return buffer
+end
+
+-------------------------------------------------------------------------------
 -- OSD & UI Utilities
 -------------------------------------------------------------------------------
 
